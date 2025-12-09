@@ -1,15 +1,15 @@
 # Transformer-Based Detection of Prompt Injection Attacks
 
-Research project investigating transformer models for detecting prompt injection attacks on Large Language Models.
+Research project investigating transformer models for detecting prompt injection attacks on Large Language Models, using realistic/paraphrased hard data and multiclass evaluation to avoid inflated (100%) results.
 
-## 🚀 One-Line Reproduction
+## 🚀 One-Line Reproduction (after data is generated)
 
 ```bash
-python run_experiment.py
+python run_experiment.py --fix multiclass --epochs 3 --fraction 0.25
 ```
 
-**Time:** ~30 minutes (CPU) or ~10 minutes (GPU)  
-**Expected F1:** 75-85%
+**Time (recent run):** ~4–5 minutes on GPU (25% data, 3 epochs)  
+**Result (hard data, multiclass):** 83.36% accuracy / 66.57% macro-F1
 
 ---
 
@@ -20,46 +20,52 @@ python run_experiment.py
 
 ---
 
-## 📦 Installation
+## 📦 Installation & Data
 
-### 1. Install dependencies
+### 1) Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Generate dataset
+### 2) Generate harder, realistic data
 ```bash
-python scripts/download_data.py
+# Base realistic data (context-rich)
+python scripts/generate_realistic_data.py
+
+# Paraphrased/perturbed hard data
+python scripts/generate_paraphrased_data.py
+
+# Convert to multiclass (legit + 5 attack types)
+python fix_100_percent_option3_multiclass.py
 ```
 
-This creates:
-- `data/train.jsonl` (50,000 samples)
-- `data/val.jsonl` (10,000 samples)  
-- `data/test.jsonl` (10,000 samples)
-- `data/adversarial_test.jsonl` (2,000 samples)
+This produces:
+- `data/train_multiclass.jsonl`, `data/val_multiclass.jsonl`, `data/test_multiclass.jsonl`
 
-### 3. Run experiment
+### 3) Run experiment (multiclass, hard data)
 ```bash
-python run_experiment.py
+python run_experiment.py --fix multiclass --epochs 3 --fraction 0.25
 ```
 
 ---
 
 ## 📊 Output
 
-Results saved to `results/results.json`:
+Results saved to `results/{model_fix}/results.json` (e.g., `results/distilbert-base-uncased_multiclass/results.json`):
 
 ```json
 {
-  "model_name": "distilbert-base-uncased",
-  "num_parameters": 66955010,
+  "fix": "multiclass",
+  "model": "distilbert-base-uncased",
+  "num_labels": 6,
+  "data_fraction": 0.25,
+  "epochs": 3,
+  "training_time_min": 4.34,
   "test_metrics": {
-    "accuracy": 0.8234,
-    "precision": 0.8156,
-    "recall": 0.8312,
-    "f1": 0.8233,
-    "auc_roc": 0.9245,
-    "fpr_at_95_recall": 0.0324
+    "accuracy": 0.8336,
+    "precision": 0.6671,
+    "recall": 0.6679,
+    "f1": 0.6657
   }
 }
 ```
@@ -73,10 +79,10 @@ Results saved to `results/results.json`:
 python run_experiment.py --model roberta-base
 
 # More data
-python run_experiment.py --fraction 0.5 --epochs 3
+python run_experiment.py --fraction 1.0 --epochs 5
 
 # Faster training
-python run_experiment.py --fraction 0.2 --epochs 1 --batch-size 16
+python run_experiment.py --fraction 0.1 --epochs 1 --batch-size 16
 ```
 
 ---
@@ -87,7 +93,7 @@ python run_experiment.py --fraction 0.2 --epochs 1 --batch-size 16
 AISurveyPaperProject/
 ├── run_experiment.py          # Main experiment file
 ├── requirements.txt           # Dependencies
-├── config.yaml                # Configuration
+├── config.yaml                # (optional) configuration
 │
 ├── src/
 │   ├── data/                  # Dataset loading
@@ -95,7 +101,12 @@ AISurveyPaperProject/
 │   └── training/              # Training loop & metrics
 │
 ├── scripts/
-│   └── download_data.py       # Data generation
+│   ├── download_data.py               # Original synthetic generator
+│   ├── generate_realistic_data.py     # Context-rich generator
+│   └── generate_paraphrased_data.py   # Paraphrased/perturbed hard data
+│
+├── fix_100_percent_option3_multiclass.py  # Converts to 6-way multiclass
+├── use_realistic_data.py                  # Helper for realistic/hard pipeline
 │
 └── paper/
     ├── main.tex               # LaTeX paper
@@ -107,11 +118,11 @@ AISurveyPaperProject/
 ## 🔬 Research Questions
 
 1. Can transformers detect prompt injections effectively?
-2. How do different architectures compare?
-3. What linguistic features do models learn?
-4. What components are critical (ablation studies)?
+2. Which attack types are hardest (multiclass view)?
+3. How to avoid inflated results from easy synthetic data?
+4. What components are critical (ablation plan in paper)?
 
-See `paper/main.tex` for complete research paper.
+See `paper/main.tex` for the complete research paper.
 
 ---
 
@@ -119,7 +130,7 @@ See `paper/main.tex` for complete research paper.
 
 ```bibtex
 @misc{prompt-injection-detection-2025,
-  author = {Your Name},
+  author = {Jinghao Wang},
   title = {Transformer-Based Detection of Prompt Injection Attacks},
   year = {2025},
   publisher = {GitHub},
@@ -131,11 +142,11 @@ See `paper/main.tex` for complete research paper.
 
 ## ✅ Requirements Compliance
 
-- ✅ Python 3
+- ✅ Python 3.11+
 - ✅ PyTorch
-- ✅ One-line reproduction
+- ✅ One-line reproduction (`run_experiment.py --fix multiclass ...`)
 - ✅ requirements.txt
-- ✅ 4 Ablation studies (described in paper)
+- ✅ Ablation plan in paper (encoder freeze vs full FT; follow-ups outlined)
 - ✅ Complete LaTeX paper
 
 ---

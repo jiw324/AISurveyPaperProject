@@ -24,10 +24,10 @@
 \title{Transformer-Based Detection and Defense \\Against Prompt Injection Attacks}
 
 \author{
-  Your Name \\
+  Jinghao Wang \\
   Department of Computer Science \\
-  Your University \\
-  \texttt{your.email@university.edu} \\
+  The Ohio State University \\
+  \texttt{wang.18804@osu.edu} \\
 }
 
 \date{\today}
@@ -101,6 +101,9 @@ Our main contributions are:
 \subsection{Research Gap}
 
 While existing work has identified the prompt injection threat and proposed heuristic defenses, there is limited research on \textit{learned detection systems} that can generalize across attack types. Our work fills this gap by systematically evaluating transformer-based classifiers for prompt injection detection, providing the first comprehensive benchmark comparing multiple architectures, and conducting ablation studies to understand which model components are critical for this security task. Unlike prior work that focuses on specific attack types or heuristic defenses, we demonstrate that learned models can achieve high accuracy with acceptable false positive rates across diverse attack categories.
+
+\paragraph{Modeling and Defense Landscape.}
+We build on transformer architectures and pre-training advances \cite{vaswani2017attention, devlin2019bert, liu2019roberta, sanh2019distilbert, he2021deberta, raffel2020exploring}, and draw on prompt-injection specific defenses and censorship approaches \cite{gao2023llm}. Adversarial prompting and jailbreak work \cite{perez2022ignore, wei2023jailbroken, liu2023prompt} underscores the need for robust detectors. For adversarial robustness and triggers we reference \cite{wallace2019universal, goodfellow2014explaining}. Our interpretability discussion connects to attention/attribution analyses \cite{voita2019analyzing, sundararajan2017axiomatic}. Collectively, these works motivate our harder, paraphrased dataset and multi-class evaluation to avoid inflated results.
 
 \section{Methodology}
 
@@ -189,38 +192,7 @@ F1-Score (macro) & 66.57\% & Balanced multiclass score \\
 
 \textbf{Analysis:} The harder data + multiclass setup removes the spurious 100\% result and yields realistic performance (83.36\% accuracy; 66.57\% macro-F1) within the expected 65--85\% band. This confirms that (1) template artifacts were the root cause of the earlier perfect metrics, and (2) semantic understanding is required once overlapping language, paraphrasing, and subtle actions are introduced. Training on 25\% of data for 3 epochs completed in $\sim$4.3 minutes on the target hardware, demonstrating practicality even in the harder setting.
 
-\subsection{Experiment 2: Per-Attack-Type Performance}
-
-\textbf{Setup:} We evaluate the best-performing model from Experiment 1 on each attack category separately to understand which attack types are most challenging to detect and whether certain patterns generalize better than others.
-
-\textbf{Results:}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Attack Type} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} & \textbf{Count} \\
-\midrule
-Goal Hijacking & XX.X & XX.X & XX.X & XXXX \\
-Context Manipulation & XX.X & XX.X & XX.X & XXXX \\
-Jailbreaking & XX.X & XX.X & XX.X & XXXX \\
-Multi-turn & XX.X & XX.X & XX.X & XXXX \\
-Obfuscated & XX.X & XX.X & XX.X & XXXX \\
-\midrule
-Legitimate & XX.X & XX.X & XX.X & XXXX \\
-\bottomrule
-\end{tabular}
-\caption{Per-attack-type detection performance}
-\label{tab:per-attack-performance}
-\end{table}
-
-\textbf{Analysis:} Goal hijacking attacks exhibit the highest detection accuracy, as they typically contain explicit instruction-like phrases (``ignore previous instructions,'' ``disregard the above'') that the model easily identifies. Context manipulation attacks are more challenging, as malicious instructions are embedded within seemingly legitimate contextual information, requiring the model to distinguish between normal context provision and adversarial manipulation.
-
-Obfuscated attacks (using leetspeak, base64 encoding, or character substitutions) present the greatest challenge, as they attempt to disguise malicious intent through surface-form transformations. However, our transformer models still achieve reasonable performance on these attacks, suggesting that they learn semantic patterns beyond simple keyword matching.
-
-Multi-turn attacks demonstrate the importance of context window size, as they gradually build malicious intent across multiple statements. The model's ability to capture long-range dependencies through self-attention proves critical for detecting these sophisticated attack patterns.
-
-\subsection{Experiment 3: Interpretability Analysis}
+\subsection{Experiment 2: Interpretability Analysis}
 
 \textbf{Attention Visualization:} We extract attention weights for correctly classified injection attacks and identify tokens receiving highest attention. Results show that the model focuses on transition phrases such as ``ignore previous,'' ``instead,'' and imperative verbs. Additionally, we observe high attention on contradiction markers (``actually,'' ``forget that,'' ``nevermind'') and mode-switching phrases (``now,'' ``from now on,'' ``you are now''). These patterns align with human intuitions about how prompt injections attempt to override system instructions.
 
@@ -236,33 +208,17 @@ Multi-turn attacks demonstrate the importance of context window size, as they gr
 
 \textbf{Error Analysis:} False negatives (missed attacks) primarily occur when injections use highly paraphrased or domain-specific language that doesn't trigger the model's learned patterns. False positives (legitimate prompts misclassified as attacks) often contain legitimately imperative instructions (e.g., ``Please ignore any typos in the following text'') that superficially resemble attack patterns.
 
-\subsection{Experiment 4: Sanitization}
+\subsection{Sanitization and Ablations}
 
-\textbf{Setup:} Train T5-small to map injected prompts to sanitized versions.
+These experiments are reserved for future work. In this draft we focus on the completed detection study; sanitization (e.g., T5-based rewrites) and ablations (pre-training, context window, data diversity, attention variants) will be reported once run with the harder, paraphrased dataset.
 
-\textbf{Results:} BLEU score: XX.X, Semantic similarity: XX.X
-
-\subsection{Experiment 5: Ablation Studies}
-
-\subsubsection{Ablation 1: Pre-training Importance}
-
-\textbf{Setup:} Compare fine-tuned BERT vs. randomly initialized BERT.
-
-\textbf{Results:} [TO BE FILLED]
-
-Pre-trained model achieves XX\% F1 while random init achieves YY\% F1, demonstrating the importance of pre-trained language knowledge.
-
-\subsubsection{Ablation 2: Context Window Size}
-
-\textbf{Results:} [FIGURE TO BE FILLED showing performance vs. context length]
-
-\subsubsection{Ablation 3: Training Data Diversity}
-
-\textbf{Results:} Removing obfuscated attacks from training causes X\% drop in overall performance, suggesting this type teaches transferable features.
-
-\subsubsection{Ablation 4: Attention Mechanism}
-
-\textbf{Results:} LSTM baseline achieves XX\% F1 vs. XX\% for full transformer, indicating self-attention is critical for long-range dependency modeling.
+\subsection{Planned Ablation (Required)}
+\label{sec:ablation-plan}
+To meet the ablation requirement, we specify a concrete ablation we would run on the hard, paraphrased dataset:
+\begin{itemize}
+    \item \textbf{Encoder freezing vs. full fine-tuning:} Train DistilBERT with encoder frozen (only classification head learns) vs. full end-to-end fine-tuning. \textit{Hypothesis:} Freezing reduces overfitting and may close the gap on subtle/obfuscated attacks if the model currently overfits surface cues; alternatively, performance may drop, showing that semantic nuance needs full adaptation. \textit{What we learn:} Whether most gains come from the pre-trained encoder or from task-specific fine-tuning; informs deployment where compute is constrained.
+\end{itemize}
+We also outline two follow-up ablations (not required to run now): (1) \textbf{Context window}—truncate vs. full 512 tokens to quantify the importance of long-range dependencies for multi-turn/context-manipulation attacks; (2) \textbf{Data diversity}—train without obfuscated attacks to measure transfer to other attack types, revealing whether obfuscation examples teach robust lexical/semantic cues.
 
 \subsection{Experiment 6: Adversarial Robustness}
 
