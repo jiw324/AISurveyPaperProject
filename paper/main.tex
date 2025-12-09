@@ -170,24 +170,24 @@ where $x$ is the input prompt, $h_{[CLS]}$ is the [CLS] token representation, an
 
 \textbf{Setup:} We evaluate DistilBERT-base on the harder, paraphrased, context-rich dataset, converted to a 6-way multi-class task (legitimate + five attack types). Training uses 25\% of the data for 3--5 epochs. This setting directly addresses the initial 100\% artifact by (i) removing template regularities and (ii) requiring per-attack-type discrimination.
 
-\textbf{Results:} (replace with your latest run)
+\textbf{Results:}
 \begin{table}[h]
 \centering
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Metric} & \textbf{Value} & \textbf{Interpretation} \\
 \midrule
-Accuracy & [update] & Realistic performance on hard data \\
-Precision (macro) & [update] & Aggregated over 6 classes \\
-Recall (macro) & [update] & Sensitive to missed attacks \\
-F1-Score (macro) & [update] & Balanced multiclass score \\
+Accuracy & 83.36\% & Realistic performance on hard data \\
+Precision (macro) & 66.71\% & Aggregated over 6 classes \\
+Recall (macro) & 66.79\% & Sensitive to missed attacks \\
+F1-Score (macro) & 66.57\% & Balanced multiclass score \\
 \bottomrule
 \end{tabular}
 \caption{DistilBERT performance on paraphrased, multi-class dataset (hard setting)}
 \label{tab:detection-results-hard}
 \end{table}
 
-\textbf{Analysis:} The harder data + multiclass setup removes the spurious 100\% result and yields realistic accuracy/F1 in the expected 65--85\% range (fill with actual numbers). Obfuscated and subtle goal-hijacking attacks remain the most challenging, while clear-cut goal hijacking is easier. This confirms that (1) template artifacts were the root cause of the earlier perfect metrics, and (2) semantic understanding is required once overlapping language and paraphrasing are introduced.
+\textbf{Analysis:} The harder data + multiclass setup removes the spurious 100\% result and yields realistic performance (83.36\% accuracy; 66.57\% macro-F1) within the expected 65--85\% band. This confirms that (1) template artifacts were the root cause of the earlier perfect metrics, and (2) semantic understanding is required once overlapping language, paraphrasing, and subtle actions are introduced. Training on 25\% of data for 3 epochs completed in $\sim$4.3 minutes on the target hardware, demonstrating practicality even in the harder setting.
 
 \subsection{Experiment 2: Per-Attack-Type Performance}
 

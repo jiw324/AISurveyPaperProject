@@ -21,20 +21,20 @@
 3. Unrealistic actions ("reveal system prompt")
 4. No ambiguous cases (clear separation)
 
-**The Fixes:**
-1. Multi-class → Force finer distinctions
-2. Label noise → Prevent memorization
-3. Ambiguous data → Add challenging cases
-4. Subtle actions → Realistic probes
+**The Fixes (Hard Data Pipeline):**
+1. Hard, context-rich data (realistic + paraphrased + overlap)
+2. Multi-class → Force finer distinctions (6 classes)
+3. Label noise → Prevent memorization
+4. Subtle actions → Realistic probes ("explain how you work")
 
 ### **ACT 3: The Resolution** (Slides 7-10, ~3 minutes)
 **Message:** "After fixes, realistic 72-82% accuracy shows actual task difficulty."
 
-**Results:**
-- Baseline: 99% (too easy)
-- Multi-class: 72% (realistic, informative)
-- Label noise: 82% (realistic)
-- Obfuscated attacks: 58% (hardest type identified)
+**Results:** (hard data pipeline)
+- Baseline: 99% (too easy, template artifact)
+- Hard data + multi-class: 83.36% acc / 66.57% macro-F1
+- Hard data + label noise: [fill]%
+- Obfuscated attacks: [fill]% (expected hardest)
 
 **Contribution:**
 - Systematic problem diagnosis
@@ -51,12 +51,13 @@
 
 ## 📊 **The Numbers That Matter**
 
-| Metric | Before Fix | After Fix | Meaning |
-|--------|-----------|-----------|---------|
-| **Accuracy** | 99.2% | 72.5% | More realistic task |
+| Metric | Before Fix | After Fix (hard data) | Meaning |
+|--------|-----------|------------------------|---------|
+| **Accuracy** | ~99% | 83.36% | Task now realistic |
+| **F1 (macro)** | 99% | 66.57% | Balanced multiclass view |
 | **Loss convergence** | Batch 30 | Gradual | Proper learning |
-| **Training needed** | 8% of epoch 1 | 5 full epochs | Real challenge |
-| **Obfuscated attacks** | Perfect | 58% F1 | Reveals hardest type |
+| **Training needed** | 8% of epoch 1 | 3–5 epochs | Real challenge |
+| **Obfuscated attacks** | Perfect | [fill]% F1 | Hardest type exposed |
 
 **Key Insight:** Lower accuracy on harder task > Higher accuracy on easy task
 
@@ -93,7 +94,7 @@ If you're running short on time:
 1. **Problem** (30s): "Prompt injection attacks manipulate LLMs"
 2. **Approach** (30s): "We trained DistilBERT to detect them"
 3. **Discovery** (60s): "Got 100% accuracy - revealed dataset was too easy"
-4. **Solution** (45s): "Made it harder with multi-class, got realistic 72%"
+4. **Solution** (45s): "Made it harder with multi-class + paraphrased data"
 5. **Impact** (15s): "Shows which attacks are hardest + methodological lesson"
 
 **Total:** 3 minutes with buffer for breathing!

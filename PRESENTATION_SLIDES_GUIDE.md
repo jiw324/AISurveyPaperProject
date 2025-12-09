@@ -222,18 +222,18 @@ Results: More Realistic Performance
 Method                          Accuracy    F1-Score
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ❌ Baseline (No Fix)             99% (old)   99% (old)
-✅ Hard Data + Multiclass        [fill]      [fill]
+✅ Hard Data + Multiclass        83.36%      66.57%
 ✅ Hard Data + Label Noise       [fill]      [fill]
 
 Key Finding:
-• Large reduction from 99% baseline (fill with your numbers)
+• Large reduction from 99% baseline
 • Now shows realistic challenge (hard data + multiclass)
 • Multi-class provides most insight
 
 Per-Class Performance (Multi-Class):
 • Legitimate: [fill]% F1
 • Goal Hijacking: [fill]% F1  
-• Obfuscated: [fill]% F1 ← Hardest
+• Obfuscated: [fill]% F1 ← Expected hardest
 ```
 
 ### What to Say:
