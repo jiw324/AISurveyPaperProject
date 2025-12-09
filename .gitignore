@@ -1,87 +1,51 @@
-# Python
+# Data files (can be regenerated)
+data/
+*.jsonl
+
+# Results and trained models (too large for git)
+results/
+*.pt
+*.pth
+*.ckpt
+
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-venv/
-env/
-ENV/
 
-# PyTorch
-*.pt
-*.pth
-*.ckpt
+# Logs
+*.log
+experiment.log
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
 
-# IDEs
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Data
-data/*.jsonl
-data/*.json
-data/*.csv
-!data/README.md
-
-# Results
-results/
-experiments/
-outputs/
-runs/
-wandb/
-
-# Logs
-*.log
-logs/
-
-# Models
-models/
-checkpoints/
-
-# LaTeX
-*.aux
-*.bbl
-*.blg
-*.fdb_latexmk
-*.fls
-*.log
-*.out
-*.synctex.gz
-*.toc
-*.lof
-*.lot
-*.pdf
-!paper/main.pdf
-
 # OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Temporary files
-tmp/
-temp/
-*.tmp
+# Virtual environment
+venv/
+env/
+ENV/
 
+# Temporary files
+*.tmp
+*.temp
+.mypy_cache/

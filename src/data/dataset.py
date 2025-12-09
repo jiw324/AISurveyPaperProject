@@ -167,7 +167,8 @@ def create_dataloaders(
     val_dataset: Dataset,
     test_dataset: Dataset,
     batch_size: int = 32,
-    num_workers: int = 4
+    num_workers: int = 4,
+    collate_fn = None
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
     Create dataloaders for train, validation, and test sets.
@@ -178,16 +179,23 @@ def create_dataloaders(
         test_dataset: Test dataset
         batch_size: Batch size
         num_workers: Number of dataloader workers
+        collate_fn: Custom collate function (if None, imports from collate.py)
     
     Returns:
         Tuple of (train_loader, val_loader, test_loader)
     """
+    # Import collate function if not provided
+    if collate_fn is None:
+        from .collate import detection_collate_fn
+        collate_fn = detection_collate_fn
+    
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True,
+        collate_fn=collate_fn
     )
     
     val_loader = DataLoader(
@@ -195,7 +203,8 @@ def create_dataloaders(
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True,
+        collate_fn=collate_fn
     )
     
     test_loader = DataLoader(
@@ -203,7 +212,8 @@ def create_dataloaders(
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True,
+        collate_fn=collate_fn
     )
     
     return train_loader, val_loader, test_loader
