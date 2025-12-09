@@ -266,7 +266,13 @@ def run_single_experiment(args, fix_override=None):
             labels = batch['labels'].to(device)
             
             outputs = model(input_ids, attention_mask)
-            all_preds.append(outputs.cpu().numpy())
+            # Handle dict or tensor output
+            if isinstance(outputs, dict):
+                logits = outputs['logits']
+            else:
+                logits = outputs
+            
+            all_preds.append(logits.cpu().numpy())
             all_labels.append(labels.cpu().numpy())
     
     all_preds = np.concatenate(all_preds, axis=0)
