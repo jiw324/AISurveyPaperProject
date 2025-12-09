@@ -295,7 +295,7 @@ class Trainer:
     
     def load_checkpoint(self, checkpoint_path: Path):
         """Load model checkpoint."""
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         logger.info(f"Loaded model from {checkpoint_path}")
 

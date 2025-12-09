@@ -140,11 +140,11 @@ where $x$ is the input prompt, $h_{[CLS]}$ is the [CLS] token representation, an
 \begin{itemize}
     \item Optimizer: AdamW, lr=2e-5, weight\_decay=0.01
     \item Batch size: 32
-    \item Training: 2 epochs on 25\% of dataset (12,500 samples)
+    \item Training: 5 epochs on 25\% of dataset (12,500 samples)
     \item Mixed precision training (FP16)
 \end{itemize}
 
-\textbf{Note on Training Setup:} This work presents a \textit{proof-of-concept} study demonstrating the feasibility of transformer-based prompt injection detection. We train for two epochs on a subset of data (25\% of 50k samples) to establish that: (1) transformers can learn to detect prompt injections, (2) relative performance differences between architectures are observable, and (3) the approach is computationally practical. While full training on the complete dataset would improve absolute performance metrics, our focus is on comparative analysis and demonstrating viability of the approach. This methodology is appropriate for initial architectural comparisons and establishes a foundation for future work with extended training.
+\textbf{Note on Training Setup:} This work presents a \textit{proof-of-concept} study demonstrating the feasibility of transformer-based prompt injection detection. We train for five epochs on a subset of data (25\% of 50k samples) to establish that: (1) transformers can learn to detect prompt injections, (2) relative performance differences between architectures are observable, and (3) the approach is computationally practical. While full training on the complete dataset would improve absolute performance metrics, our focus is on comparative analysis and demonstrating viability of the approach. This methodology is appropriate for initial architectural comparisons and establishes a foundation for future work with extended training.
 
 \subsection{Evaluation Metrics}
 
@@ -292,7 +292,7 @@ Our experiments yield several important findings for the design of prompt inject
 \subsection{Limitations}
 
 \begin{itemize}
-    \item \textbf{Training constraints:} Due to computational limitations, we trained for two epochs on 25\% of data. While this is sufficient to demonstrate feasibility and compare architectures, full training would improve absolute performance by an estimated 5-10 percentage points. Our results establish proof-of-concept; production deployment would require extended training.
+    \item \textbf{Training constraints:} Due to computational limitations, we trained for five epochs on 25\% of data. While this is sufficient to demonstrate feasibility and compare architectures, full training would improve absolute performance by an estimated 5-10 percentage points. Our results establish proof-of-concept; production deployment would require extended training.
     \item Synthetic dataset may not capture all real-world attack patterns
     \item Adversarial robustness remains limited
     \item Trade-off between security (low false negatives) and usability (low false positives)
@@ -314,7 +314,7 @@ This work demonstrates that transformer-based classifiers are effective for dete
 \subsection{Future Work}
 
 \begin{itemize}
-    \item \textbf{Extended training:} Train on full dataset (50k samples) for 3-5 epochs to improve absolute performance while maintaining architectural comparisons
+    \item \textbf{Extended training:} Train on full dataset (50k samples) for 8-10 epochs to improve absolute performance while maintaining architectural comparisons
     \item Real-world deployment study with human feedback
     \item Cross-model generalization (train on GPT, test on Claude)
     \item Multimodal detection combining text, perplexity, and behavior analysis
