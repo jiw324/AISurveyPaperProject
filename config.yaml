@@ -1,0 +1,216 @@
+# Configuration file for Prompt Injection Detection Experiments
+
+# Training Configuration
+training:
+  batch_size: 32
+  learning_rate: 2e-5
+  weight_decay: 0.01
+  epochs: 5
+  warmup_ratio: 0.1
+  early_stopping_patience: 2
+  gradient_accumulation_steps: 1
+  max_grad_norm: 1.0
+  fp16: true  # Use mixed precision training
+  dataloader_num_workers: 4
+
+# Model Configurations
+models:
+  bert:
+    pretrained: "bert-base-uncased"
+    max_length: 512
+    hidden_dropout_prob: 0.1
+    attention_probs_dropout_prob: 0.1
+    
+  roberta:
+    pretrained: "roberta-base"
+    max_length: 512
+    hidden_dropout_prob: 0.1
+    attention_probs_dropout_prob: 0.1
+    
+  distilbert:
+    pretrained: "distilbert-base-uncased"
+    max_length: 512
+    dropout: 0.1
+    
+  deberta:
+    pretrained: "microsoft/deberta-v3-base"
+    max_length: 512
+    hidden_dropout_prob: 0.1
+    attention_probs_dropout_prob: 0.1
+    
+  t5:
+    pretrained: "t5-small"
+    max_length: 512
+    max_target_length: 512
+    
+  custom:
+    vocab_size: 30522
+    hidden_size: 256
+    num_hidden_layers: 6
+    num_attention_heads: 8
+    intermediate_size: 1024
+    max_length: 512
+    dropout: 0.1
+
+# Data Configuration
+data:
+  train_path: "data/train.jsonl"
+  val_path: "data/val.jsonl"
+  test_path: "data/test.jsonl"
+  adversarial_test_path: "data/adversarial_test.jsonl"
+  
+  # Dataset sizes
+  train_size: 50000
+  val_size: 10000
+  test_size: 10000
+  adversarial_test_size: 2000
+  
+  # Class balance
+  balance_classes: true
+  positive_ratio: 0.5  # Ratio of injection attacks
+  
+  # Attack type distribution (for training data)
+  attack_types:
+    goal_hijacking: 0.25      # Type A
+    context_manipulation: 0.20 # Type B
+    jailbreaking: 0.20        # Type C
+    multi_turn: 0.15          # Type D
+    obfuscated: 0.20          # Type E
+  
+  # Data sources for legitimate prompts
+  legitimate_sources:
+    - "shareGPT"
+    - "alpaca"
+    - "lmsys_chat"
+    - "synthetic"
+  
+  # Preprocessing
+  lowercase: false
+  remove_special_chars: false
+  max_length: 512
+  truncation: true
+  padding: "max_length"
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1"
+    - "auc_roc"
+    - "fpr_at_95_recall"
+  
+  # Threshold for classification
+  classification_threshold: 0.5
+  
+  # Per-attack-type evaluation
+  per_type_eval: true
+  
+  # Confusion matrix
+  save_confusion_matrix: true
+
+# Ablation Study Configuration
+ablations:
+  pretrain:
+    compare_random_init: true
+    epochs: 10  # May need more for random init
+    
+  context:
+    window_sizes: [64, 128, 256, 512]
+    
+  data_diversity:
+    remove_one_type: true
+    attack_types: ["goal_hijacking", "context_manipulation", "jailbreaking", "multi_turn", "obfuscated"]
+    
+  attention:
+    architectures:
+      - "lstm"      # No attention baseline
+      - "local"     # Local attention (window=50)
+      - "full"      # Full self-attention
+
+# Interpretability Configuration
+interpretability:
+  # Attention visualization
+  attention:
+    visualize_top_k: 50  # Top K examples to visualize
+    save_heatmaps: true
+    
+  # Gradient-based saliency
+  saliency:
+    num_examples: 100
+    method: "integrated_gradients"
+    
+  # Probing classifiers
+  probing:
+    features_to_probe:
+      - "imperatives"
+      - "semantic_shift"
+      - "formality"
+    layers_to_probe: [3, 6, 9, 12]  # For BERT-base
+
+# Sanitization Configuration
+sanitization:
+  model: "t5-small"
+  beam_size: 4
+  length_penalty: 1.0
+  max_length: 512
+  
+  # Evaluation
+  compute_bleu: true
+  compute_semantic_similarity: true
+  human_eval_samples: 100
+
+# Adversarial Attack Configuration
+adversarial:
+  attacks:
+    paraphrase:
+      model: "gpt-3.5-turbo"  # or local model
+      num_paraphrases: 5
+      
+    substitute:
+      max_substitutions: 3
+      threshold: 0.8  # Semantic similarity threshold
+      
+    gradient:
+      epsilon: 0.1
+      num_steps: 10
+      step_size: 0.01
+  
+  # Adversarial training
+  adversarial_training:
+    enabled: true
+    ratio: 0.3  # Ratio of adversarial examples in training
+
+# Hardware Configuration
+hardware:
+  device: "cuda"  # cuda or cpu
+  mixed_precision: true
+  num_gpus: 1
+  distributed: false
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  log_file: "experiment.log"
+  tensorboard: true
+  wandb: false  # Set to true if using Weights & Biases
+  wandb_project: "prompt-injection-detection"
+  
+  # Checkpointing
+  save_checkpoints: true
+  checkpoint_dir: "results/models/"
+  save_frequency: 1  # Save every N epochs
+  keep_best_only: true
+
+# Output Configuration
+output:
+  results_dir: "results/"
+  save_predictions: true
+  save_visualizations: true
+  generate_report: true
+
+# Reproducibility
+seed: 42
+deterministic: true
+
