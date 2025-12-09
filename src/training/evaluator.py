@@ -31,44 +31,71 @@ class Evaluator:
         return_detailed: bool = False
     ) -> Dict[str, float]:
         """
-        Compute evaluation metrics.
+        Compute evaluation metrics for binary or multi-class classification.
         
         Args:
-            predictions: Model predictions (logits or probabilities) [N, 2]
+            predictions: Model predictions (logits or probabilities) [N, num_classes]
             labels: Ground truth labels [N]
             return_detailed: Whether to return detailed per-class metrics
         
         Returns:
             Dictionary of metrics
         """
-        # Convert logits to probabilities if needed
-        if predictions.shape[1] == 2:
-            probs = predictions[:, 1]  # Probability of injection class
+        num_classes = predictions.shape[1] if len(predictions.shape) > 1 else 2
+        
+        # Handle multi-class vs binary
+        if num_classes > 2:
+            # Multi-class classification
+            pred_labels = np.argmax(predictions, axis=1)
+            
+            metrics = {
+                'accuracy': accuracy_score(labels, pred_labels),
+                'precision': precision_score(labels, pred_labels, average='macro', zero_division=0),
+                'recall': recall_score(labels, pred_labels, average='macro', zero_division=0),
+                'f1': f1_score(labels, pred_labels, average='macro', zero_division=0),
+            }
+            
+            # Multi-class AUC-ROC
+            try:
+                from sklearn.preprocessing import label_binarize
+                labels_bin = label_binarize(labels, classes=range(num_classes))
+                metrics['auc_roc'] = roc_auc_score(labels_bin, predictions, 
+                                                    multi_class='ovr', average='macro')
+            except Exception as e:
+                logger.warning(f"Could not compute multi-class AUC-ROC: {e}")
+                metrics['auc_roc'] = 0.0
+            
+            metrics['fpr_at_95_recall'] = 0.0  # Not applicable for multi-class
+            
         else:
-            probs = predictions
-        
-        # Binary predictions
-        pred_labels = (probs >= self.threshold).astype(int)
-        
-        # Compute metrics
-        metrics = {
-            'accuracy': accuracy_score(labels, pred_labels),
-            'precision': precision_score(labels, pred_labels, zero_division=0),
-            'recall': recall_score(labels, pred_labels, zero_division=0),
-            'f1': f1_score(labels, pred_labels, zero_division=0),
-        }
-        
-        # AUC-ROC (requires probabilities)
-        try:
-            metrics['auc_roc'] = roc_auc_score(labels, probs)
-        except ValueError as e:
-            logger.warning(f"Could not compute AUC-ROC: {e}")
-            metrics['auc_roc'] = 0.0
-        
-        # False Positive Rate at 95% Recall
-        metrics['fpr_at_95_recall'] = self.compute_fpr_at_recall(
-            labels, probs, target_recall=0.95
-        )
+            # Binary classification
+            if predictions.shape[1] == 2:
+                probs = predictions[:, 1]  # Probability of injection class
+            else:
+                probs = predictions
+            
+            # Binary predictions
+            pred_labels = (probs >= self.threshold).astype(int)
+            
+            # Compute metrics
+            metrics = {
+                'accuracy': accuracy_score(labels, pred_labels),
+                'precision': precision_score(labels, pred_labels, zero_division=0),
+                'recall': recall_score(labels, pred_labels, zero_division=0),
+                'f1': f1_score(labels, pred_labels, zero_division=0),
+            }
+            
+            # AUC-ROC (requires probabilities)
+            try:
+                metrics['auc_roc'] = roc_auc_score(labels, probs)
+            except ValueError as e:
+                logger.warning(f"Could not compute AUC-ROC: {e}")
+                metrics['auc_roc'] = 0.0
+            
+            # False Positive Rate at 95% Recall
+            metrics['fpr_at_95_recall'] = self.compute_fpr_at_recall(
+                labels, probs, target_recall=0.95
+            )
         
         if return_detailed:
             # Confusion matrix
@@ -76,7 +103,7 @@ class Evaluator:
             metrics['confusion_matrix'] = cm.tolist()
             
             # Per-class metrics
-            report = classification_report(labels, pred_labels, output_dict=True)
+            report = classification_report(labels, pred_labels, output_dict=True, zero_division=0)
             metrics['classification_report'] = report
         
         return metrics

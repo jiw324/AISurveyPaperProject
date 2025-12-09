@@ -27,6 +27,7 @@ from datetime import datetime
 import torch
 from torch.utils.data import Subset
 import warnings
+import numpy as np
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -232,18 +233,15 @@ def run_single_experiment(args, fix_override=None):
     
     trainer = Trainer(
         model=model,
-        tokenizer=tokenizer,
         train_loader=train_loader,
         val_loader=val_loader,
         test_loader=test_loader,
-        epochs=args.epochs,
+        num_epochs=args.epochs,
         learning_rate=lr,
         weight_decay=args.weight_decay,
         device=device,
-        output_dir=output_dir,
-        log_interval=50,
-        gradient_accumulation_steps=1,
-        fp16=False,
+        output_dir=str(output_dir),
+        mixed_precision=torch.cuda.is_available(),
         early_stopping_patience=2 if args.fix != 'regularization' else 1
     )
     
@@ -256,8 +254,45 @@ def run_single_experiment(args, fix_override=None):
     logger.info("📊 FINAL EVALUATION")
     logger.info("=" * 80)
     
-    evaluator = Evaluator(model, test_loader, device, output_dir, num_classes=num_labels)
-    test_metrics = evaluator.evaluate()
+    # Collect predictions
+    model.eval()
+    all_preds = []
+    all_labels = []
+    
+    with torch.no_grad():
+        for batch in test_loader:
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            
+            outputs = model(input_ids, attention_mask)
+            all_preds.append(outputs.cpu().numpy())
+            all_labels.append(labels.cpu().numpy())
+    
+    all_preds = np.concatenate(all_preds, axis=0)
+    all_labels = np.concatenate(all_labels, axis=0)
+    
+    # Compute metrics
+    evaluator = Evaluator(threshold=0.5)
+    
+    if num_labels == 2:
+        # Binary classification
+        test_metrics = evaluator.compute_metrics(all_preds, all_labels)
+    else:
+        # Multi-class - use argmax
+        pred_classes = np.argmax(all_preds, axis=1)
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+        test_metrics = {
+            'accuracy': accuracy_score(all_labels, pred_classes),
+            'precision': precision_score(all_labels, pred_classes, average='macro', zero_division=0),
+            'recall': recall_score(all_labels, pred_classes, average='macro', zero_division=0),
+            'f1': f1_score(all_labels, pred_classes, average='macro', zero_division=0),
+        }
+    
+    logger.info(f"Accuracy:  {test_metrics['accuracy']*100:.2f}%")
+    logger.info(f"Precision: {test_metrics['precision']*100:.2f}%")
+    logger.info(f"Recall:    {test_metrics['recall']*100:.2f}%")
+    logger.info(f"F1-Score:  {test_metrics['f1']*100:.2f}%")
     
     # Compile results
     results = {
