@@ -301,3 +301,4 @@ class DetectionExperiment:
         with open(report_path, 'r') as f:
             logger.info("\n" + f.read())
 
+
