@@ -42,7 +42,7 @@ Large Language Models (LLMs) are increasingly deployed in production systems, ma
 
 \section{Introduction}
 
-Large Language Models (LLMs) such as GPT-4, Claude, and Gemini have achieved remarkable capabilities in natural language understanding and generation \cite{brown2020language, openai2023gpt4}. These models are increasingly integrated into real-world applications including chatbots, code assistants, search engines, and automated customer service systems. However, their deployment introduces significant security risks, particularly through \textit{prompt injection attacks} \cite{perez2022ignore, liu2023prompt}.
+Large Language Models (LLMs) such as GPT-4, Claude, and Gemini have achieved remarkable capabilities in natural language understanding and generation \cite{brown2020language, openai2023gpt4, wolf2020transformers, hoffmann2022training, ouyang2022training}. These models are increasingly integrated into real-world applications including chatbots, code assistants, search engines, and automated customer service systems. However, their deployment introduces significant security risks, particularly through \textit{prompt injection attacks} \cite{perez2022ignore, liu2023prompt, wei2023jailbroken, greshake2024promptinject, zhao2024survey}.
 
 Prompt injection attacks exploit the fact that LLMs process user inputs and system instructions in the same text stream, allowing adversaries to manipulate model behavior by injecting malicious instructions into user prompts. These attacks can:
 
@@ -53,7 +53,7 @@ Prompt injection attacks exploit the fact that LLMs process user inputs and syst
     \item \textbf{Manipulate outputs:} Generate harmful or biased content
 \end{itemize}
 
-Current defenses against prompt injection are largely heuristic-based (keyword filtering, input sanitization rules) or rely on prompt engineering techniques (instruction hierarchy, delimiter tokens) \cite{wei2023jailbroken}. However, these approaches are brittle and easily evaded through paraphrasing, obfuscation, or novel attack patterns.
+Current defenses against prompt injection are largely heuristic-based (keyword filtering, input sanitization rules) or rely on prompt engineering techniques (instruction hierarchy, delimiter tokens) \cite{wei2023jailbroken, zhao2024survey}. However, these approaches are brittle and easily evaded through paraphrasing, obfuscation, or novel attack patterns \cite{zou2023universal, greshake2024promptinject, sun2024defending}.
 
 \subsection{Research Questions}
 
@@ -78,23 +78,23 @@ This work addresses:
 
 \subsection{Prompt Injection Attacks}
 
-\textbf{Attack Taxonomy:} Prompt injection attacks have been systematically studied by recent work \cite{perez2022ignore, liu2023prompt}. Common attack categories include goal hijacking (directly instructing the model to ignore previous instructions), context manipulation (embedding malicious instructions within seemingly legitimate data), and jailbreaking (using role-play or hypothetical scenarios to bypass safety guardrails). These attacks exploit the fundamental architecture of LLMs, where system prompts and user inputs are processed in the same context window without clear boundaries.
+\textbf{Attack Taxonomy:} Prompt injection attacks have been systematically studied by recent work \cite{perez2022ignore, liu2023prompt, greshake2024promptinject, zhao2024survey}. Common attack categories include goal hijacking (directly instructing the model to ignore previous instructions), context manipulation (embedding malicious instructions within seemingly legitimate data), and jailbreaking (using role-play or hypothetical scenarios to bypass safety guardrails) \cite{wei2023jailbroken, zou2023universal, sun2024defending}.
 
-\textbf{Jailbreaking:} Wei et al. \cite{wei2023jailbroken} demonstrated that adversarial prompts can bypass safety training in aligned models through techniques such as prefix injection, role-playing scenarios, and obfuscation. Their work showed that even well-aligned models like GPT-4 and Claude remain vulnerable to carefully crafted prompts that gradually manipulate the conversation context.
+\textbf{Jailbreaking:} Wei et al. \cite{wei2023jailbroken} demonstrated that adversarial prompts can bypass safety training in aligned models through techniques such as prefix injection, role-playing scenarios, and obfuscation; similar adversarial suffixes are studied by Zou et al. \cite{zou2023universal}. These works show that even well-aligned models remain vulnerable to carefully crafted prompts that gradually manipulate the conversation context.
 
-\textbf{Real-World Impact:} Recent incidents have demonstrated the severity of prompt injection attacks. Researchers have successfully extracted system prompts from production chatbots, manipulated customer service bots to approve fraudulent requests, and caused content generation systems to bypass their safety filters. These attacks pose significant risks in high-stakes applications such as healthcare assistants, financial advisors, and autonomous agents.
+\textbf{Real-World Impact:} Recent incidents have demonstrated the severity of prompt injection attacks, including disclosure of system prompts and policy bypasses in deployed assistants \cite{greshake2024promptinject, ganguli2022red}. These attacks pose significant risks in high-stakes applications such as healthcare assistants, financial advisors, and autonomous agents.
 
 \subsection{Adversarial Detection}
 
-\textbf{Text Classification:} Transformer-based models have shown strong performance in adversarial text detection tasks, including spam detection, toxic comment classification, and fake news identification. BERT and its variants have become standard baselines for text classification tasks, achieving state-of-the-art results through transfer learning from large-scale pre-training.
+\textbf{Text Classification:} Transformer-based models have shown strong performance in adversarial text detection tasks, including spam detection, toxic comment classification, and fake news identification \cite{wolf2020transformers, schick2021self}. BERT and its variants remain standard baselines for text classification tasks, achieving state-of-the-art results through transfer learning from large-scale pre-training \cite{devlin2019bert, liu2019roberta, sanh2019distilbert, he2021deberta}.
 
-\textbf{Perplexity-based Detection:} Recent work has proposed using perplexity scores to detect out-of-distribution prompts, with the intuition that adversarial prompts may exhibit unusual statistical properties. However, these methods suffer from high false positive rates on legitimate but unusual queries, limiting their practical deployment.
+\textbf{Perplexity-based Detection:} Recent work has proposed using perplexity scores to detect out-of-distribution prompts \cite{mitchell2023detectgpt}, with the intuition that adversarial prompts may exhibit unusual statistical properties. However, these methods suffer from high false positive rates on legitimate but unusual queries, limiting their practical deployment.
 
-\textbf{Rule-based Defenses:} Current production systems primarily rely on keyword filtering and regular expression matching to detect malicious prompts. These approaches are fast and interpretable but easily evaded through paraphrasing, obfuscation, or novel attack formulations. Recent work has shown that simple character-level perturbations can bypass most rule-based filters.
+\textbf{Rule-based Defenses:} Current production systems primarily rely on keyword filtering and regular expression matching to detect malicious prompts. These approaches are fast and interpretable but easily evaded through paraphrasing, obfuscation, or novel attack formulations \cite{zou2023universal, greshake2024promptinject}.
 
 \subsection{Research Gap}
 
-While existing work has identified the prompt injection threat and proposed heuristic defenses, there is limited research on \textit{learned detection systems} that can generalize across attack types. Our work fills this gap by systematically evaluating transformer-based classifiers for prompt injection detection, providing the first comprehensive benchmark comparing multiple architectures, and conducting ablation studies to understand which model components are critical for this security task. Unlike prior work that focuses on specific attack types or heuristic defenses, we demonstrate that learned models can achieve high accuracy with acceptable false positive rates across diverse attack categories.
+While existing work has identified the prompt injection threat and proposed heuristic defenses, there is limited research on \textit{learned detection systems} that can generalize across attack types. Our work fills this gap by evaluating transformer-based classifiers on a hardened, paraphrased dataset and reporting realistic multiclass metrics, complementing censorship-style defenses \cite{gao2023llm} and robustness surveys \cite{zhao2024survey}. Unlike prior work that focuses on specific attack types or heuristic defenses, we demonstrate that learned models can achieve competitive accuracy on harder data while exposing remaining robustness gaps.
 
 \paragraph{Modeling and Defense Landscape.}
 We build on transformer architectures and pre-training advances \cite{vaswani2017attention, devlin2019bert, liu2019roberta, sanh2019distilbert, he2021deberta, raffel2020exploring}, and draw on prompt-injection specific defenses and censorship approaches \cite{gao2023llm}. Adversarial prompting and jailbreak work \cite{perez2022ignore, wei2023jailbroken, liu2023prompt} underscores the need for robust detectors. For adversarial robustness and triggers we reference \cite{wallace2019universal, goodfellow2014explaining}. Our interpretability discussion connects to attention/attribution analyses \cite{voita2019analyzing, sundararajan2017axiomatic}. Collectively, these works motivate our harder, paraphrased dataset and multi-class evaluation to avoid inflated results.
@@ -107,7 +107,7 @@ Our goal is to evaluate learned detectors under a realistically ambiguous settin
 
 \textbf{Splits and size.} 50k train / 10k validation / 10k test. Balanced (50\% legitimate, 50\% injection) with five attack types: goal hijacking, context manipulation, jailbreaking, multi-turn, and obfuscated \cite{perez2022ignore, liu2023prompt}.
 
-\textbf{Two-stage hardening.}
+\textbf{Two-stage hardening.} Inspired by recent red-teaming and robustness work \cite{ganguli2022red, greshake2024promptinject, sun2024defending}:
 \begin{enumerate}
     \item \textbf{Context-rich (realistic):} Full conversational prompts with embedded attacks, social-engineering framing, and benign meta-AI questions that resemble attacks.
     \item \textbf{Paraphrased/perturbed (hard):} Synonym swaps, typos, casing noise, filler words, and deliberate overlap (some legitimate prompts contain ``ignore/forget''-style language) to break keyword shortcuts and force semantic discrimination.
@@ -214,17 +214,17 @@ We plan to evaluate robustness against paraphrasing and universal triggers \cite
 
 Our experiments yield several important findings for the design of prompt injection detection systems:
 
-\textbf{1. Learned Detection is Feasible:} Transformer-based classifiers achieve solid performance on hard, paraphrased, multi-class data (macro-F1 $\approx$63\%), demonstrating that learned defenses can generalize beyond simple pattern matching. This contrasts with rule-based systems that require manual engineering for each new attack variant.
+\textbf{1. Learned Detection is Feasible:} Transformer-based classifiers achieve solid performance on hard, paraphrased, multi-class data (macro-F1 $\approx$63\%), demonstrating that learned defenses can generalize beyond simple pattern matching \cite{wolf2020transformers, sanh2019distilbert}. This contrasts with rule-based systems that require manual engineering for each new attack variant \cite{zou2023universal, greshake2024promptinject}.
 
 \textbf{2. Pre-training Matters:} Our ablation study (Section 4.5.1) shows that pre-trained transformers substantially outperform randomly initialized models, indicating that general language understanding acquired during pre-training transfers effectively to security tasks. This suggests that as pre-training methods improve, detection capabilities will correspondingly advance.
 
 \textbf{3. Architecture Comparison:} RoBERTa and DeBERTa consistently outperform BERT, while DistilBERT offers a compelling efficiency-accuracy tradeoff. For resource-constrained deployments, DistilBERT's 60\% faster inference with only modest accuracy degradation makes it the recommended choice.
 
-\textbf{4. Attack Type Difficulty:} Goal hijacking attacks (explicit instruction override) are easiest to detect, while obfuscated attacks (character-level transformations) are most challenging. This suggests that detection systems should be augmented with preprocessing steps to normalize obfuscation before classification.
+\textbf{4. Attack Type Difficulty:} Goal hijacking attacks (explicit instruction override) are easiest to detect, while obfuscated attacks (character-level transformations) are most challenging \cite{zou2023universal}. This suggests that detection systems should be augmented with preprocessing steps to normalize obfuscation before classification.
 
 \textbf{5. False Positive-Recall Tradeoff:} Achieving 95\% recall while maintaining acceptable false positive rates (<5\%) is feasible but requires careful threshold tuning. In production, we recommend adaptive thresholding based on application criticality: high-security applications (e.g., financial transactions) should prioritize recall, while user-facing applications (e.g., chatbots) should balance both metrics.
 
-\textbf{6. Interpretability Insights:} Models primarily attend to imperative verbs, instruction negation phrases, and role manipulation cues. This suggests that augmenting models with explicit syntactic features (e.g., dependency parsing for imperative detection) could further improve performance.
+\textbf{6. Interpretability Insights:} Models primarily attend to imperative verbs, instruction negation phrases, and role manipulation cues. This suggests that augmenting models with explicit syntactic features (e.g., dependency parsing for imperative detection) could further improve performance, aligning with attribution analyses \cite{sundararajan2017axiomatic, voita2019analyzing}.
 
 \textbf{7. Deployment Implications:} With inference latency below 30ms, real-time filtering is practical for interactive applications. The models can be deployed as a pre-processing filter before LLM invocation, adding minimal overhead to end-user latency.
 
@@ -248,7 +248,7 @@ For production deployment, we recommend:
 
 \section{Conclusion}
 
-This work demonstrates that transformer-based classifiers are effective for detecting prompt injection attacks once the data is realistically difficult: DistilBERT reaches 83.5\% accuracy and 63.1\% macro-F1 on a hard, paraphrased, six-way dataset. Our planned ablation (encoder freezing vs. full fine-tuning) will isolate how much gain comes from task adaptation. Robustness to adaptive attackers \cite{wei2023jailbroken, wallace2019universal} remains open, so detection should be paired with LLM-level defenses and input sanitization \cite{gao2023llm}.
+This work demonstrates that transformer-based classifiers are effective for detecting prompt injection attacks once the data is realistically difficult: DistilBERT reaches 83.5\% accuracy and 63.1\% macro-F1 on a hard, paraphrased, six-way dataset. Our planned ablation (encoder freezing vs. full fine-tuning) will isolate how much gain comes from task adaptation. Robustness to adaptive attackers \cite{wei2023jailbroken, wallace2019universal, greshake2024promptinject} remains open, so detection should be paired with LLM-level defenses and input sanitization \cite{gao2023llm, sun2024defending}.
 
 \subsection{Future Work}
 
