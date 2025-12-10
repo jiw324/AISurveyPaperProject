@@ -73,6 +73,8 @@ Examples:
                        help='Number of epochs (default: 5)')
     parser.add_argument('--batch-size', type=int, default=32,
                        help='Batch size (default: 32)')
+    parser.add_argument('--max-length', type=int, default=512,
+                       help='Max sequence length for tokenization (default: 512)')
     parser.add_argument('--learning-rate', type=float, default=2e-5,
                        help='Learning rate (default: 2e-5)')
     parser.add_argument('--output-dir', type=str, default='results',
@@ -138,7 +140,7 @@ def run_single_experiment(args, fix_override=None):
     
     # Check base data
     if not Path("data/train.jsonl").exists():
-        logger.error("❌ Data not found! Run: python scripts/download_data.py")
+        logger.error("❌ Data not found! Run: python scripts/generate_full_dataset.py")
         return None
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -163,7 +165,7 @@ def run_single_experiment(args, fix_override=None):
         }
         logger.info("📊 Task: 6-way classification")
         if not Path(train_path).exists():
-            logger.error(f"❌ {train_path} not found! Run: python fix_100_percent_option3_multiclass.py")
+            logger.error(f"❌ {train_path} not found! Run: python scripts/generate_full_dataset.py")
             return None
             
     elif args.fix == 'label_noise':
@@ -174,7 +176,7 @@ def run_single_experiment(args, fix_override=None):
         label_map = {"legitimate": 0, "injection": 1}
         logger.info("📊 Task: Binary with 15% label noise")
         if not Path(train_path).exists():
-            logger.error(f"❌ {train_path} not found! Run: python fix_100_percent_option1_label_noise.py")
+            logger.error(f"❌ {train_path} not found! (label_noise dataset not generated)")
             return None
             
     else:
@@ -194,9 +196,9 @@ def run_single_experiment(args, fix_override=None):
     model.to(device)
     
     # Load datasets
-    train_full = PromptInjectionDataset(train_path, tokenizer, 512, label_map=label_map)
-    val_full = PromptInjectionDataset(val_path, tokenizer, 512, label_map=label_map)
-    test_full = PromptInjectionDataset(test_path, tokenizer, 512, label_map=label_map)
+    train_full = PromptInjectionDataset(train_path, tokenizer, args.max_length, label_map=label_map)
+    val_full = PromptInjectionDataset(val_path, tokenizer, args.max_length, label_map=label_map)
+    test_full = PromptInjectionDataset(test_path, tokenizer, args.max_length, label_map=label_map)
     
     # Subset if needed
     if args.fraction < 1.0:
